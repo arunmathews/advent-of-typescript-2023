@@ -1,5 +1,4 @@
-import { PlusOne } from "../util/plus-one";
-import { Equal, Expect } from "type-testing";
+import { ModifiedArray } from "../util/array-utils";
 
 type TicTacToeChip = "❌" | "⭕";
 type TicTacToeEndState = "❌ Won" | "⭕ Won" | "Draw";
@@ -44,23 +43,6 @@ type TicTacToeMove<
       Chip
     >
   : never;
-
-type ModifiedArray<
-  OriginalArray extends TicTacToeCell[][],
-  Row extends number,
-  Column extends number,
-  NewValue extends TicTacToeChip,
-> = {
-  [I in keyof OriginalArray]: I extends `${Row}`
-    ? OriginalArray[I] extends infer InnerArray
-      ? {
-          [J in keyof InnerArray]: J extends `${Column}`
-            ? NewValue
-            : InnerArray[J];
-        }
-      : never
-    : OriginalArray[I];
-};
 
 type ChipWonDiagonal<
   Board extends TicTactToeBoard,

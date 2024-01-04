@@ -1,3 +1,5 @@
+import { ParseInt, RemoveLeadingZeroes, ReverseString } from "./number-utils";
+
 type InternalPlusOne<S extends string> = S extends "9"
   ? "01"
   : S extends `${infer Digit extends number}${infer Rest}`
