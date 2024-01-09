@@ -8,12 +8,6 @@ type Connect4Chips = "🔴" | "🟡";
 type Connect4Cell = Connect4Chips | "  ";
 type Connect4State = "🔴" | "🟡" | "🔴 Won" | "🟡 Won" | "Draw";
 
-type Connect4Game = {
-  board: Connect4Board;
-  state: Connect4State;
-};
-
-type Connect4Board = Connect4Cell[][];
 type EmptyBoard = [
   ["  ", "  ", "  ", "  ", "  ", "  ", "  "],
   ["  ", "  ", "  ", "  ", "  ", "  ", "  "],
@@ -26,6 +20,13 @@ type EmptyBoard = [
 type NewGame = {
   board: EmptyBoard;
   state: "🟡";
+};
+
+type Connect4Board = Connect4Cell[][];
+
+type Connect4Game = {
+  board: Connect4Board;
+  state: Connect4State;
 };
 
 type FindEmptyCellRec<
@@ -140,6 +141,93 @@ type ChipWonHorizontalAnyRow<
     : `${Chip} Won`
   : `${Chip} Won`;
 
+type ChipWonDiagonalRowStartColDown<
+  Board extends Connect4Board,
+  Chip extends Connect4Chips,
+  Row extends number,
+  StartInd extends number,
+> =
+  | Board[Row][StartInd]
+  | Board[PlusOne<Row>][PlusOne<StartInd>]
+  | Board[PlusOne<PlusOne<Row>>][PlusOne<PlusOne<StartInd>>]
+  | Board[PlusOne<PlusOne<PlusOne<Row>>>][PlusOne<
+      PlusOne<PlusOne<StartInd>>
+    >] extends Chip
+  ? `${Chip} Won`
+  : never;
+
+type ChipWonDiagonalRowDown<
+  Board extends Connect4Board,
+  Chip extends Connect4Chips,
+  Row extends number,
+> = ChipWonDiagonalRowStartColDown<Board, Chip, Row, 0> extends never
+  ? ChipWonDiagonalRowStartColDown<Board, Chip, Row, 1> extends never
+    ? ChipWonDiagonalRowStartColDown<Board, Chip, Row, 2> extends never
+      ? ChipWonDiagonalRowStartColDown<Board, Chip, Row, 3> extends never
+        ? never
+        : `${Chip} Won`
+      : `${Chip} Won`
+    : `${Chip} Won`
+  : `${Chip} Won`;
+
+type ChipWonDiagonalRowStartColUp<
+  Board extends Connect4Board,
+  Chip extends Connect4Chips,
+  Row extends number,
+  StartInd extends number,
+> =
+  | Board[Row][StartInd]
+  | Board[MinusOne<Row>][PlusOne<StartInd>]
+  | Board[MinusOne<MinusOne<Row>>][PlusOne<PlusOne<StartInd>>]
+  | Board[MinusOne<MinusOne<MinusOne<Row>>>][PlusOne<
+      PlusOne<PlusOne<StartInd>>
+    >] extends Chip
+  ? `${Chip} Won`
+  : never;
+
+type ChipWonDiagonalRowUp<
+  Board extends Connect4Board,
+  Chip extends Connect4Chips,
+  Row extends number,
+> = ChipWonDiagonalRowStartColUp<Board, Chip, Row, 0> extends never
+  ? ChipWonDiagonalRowStartColUp<Board, Chip, Row, 1> extends never
+    ? ChipWonDiagonalRowStartColUp<Board, Chip, Row, 2> extends never
+      ? ChipWonDiagonalRowStartColUp<Board, Chip, Row, 3> extends never
+        ? never
+        : `${Chip} Won`
+      : `${Chip} Won`
+    : `${Chip} Won`
+  : `${Chip} Won`;
+
+type ChipWonDiagonalAnyRow<
+  Board extends Connect4Board,
+  Chip extends Connect4Chips,
+> = ChipWonDiagonalRowDown<Board, Chip, 0> extends never
+  ? ChipWonDiagonalRowDown<Board, Chip, 1> extends never
+    ? ChipWonDiagonalRowDown<Board, Chip, 2> extends never
+      ? ChipWonDiagonalRowDown<Board, Chip, 3> extends never
+        ? ChipWonDiagonalRowDown<Board, Chip, 4> extends never
+          ? ChipWonDiagonalRowDown<Board, Chip, 5> extends never
+            ? ChipWonDiagonalRowUp<Board, Chip, 0> extends never
+              ? ChipWonDiagonalRowUp<Board, Chip, 1> extends never
+                ? ChipWonDiagonalRowUp<Board, Chip, 2> extends never
+                  ? ChipWonDiagonalRowUp<Board, Chip, 3> extends never
+                    ? ChipWonDiagonalRowUp<Board, Chip, 4> extends never
+                      ? ChipWonDiagonalRowUp<Board, Chip, 5> extends never
+                        ? never
+                        : `${Chip} Won`
+                      : `${Chip} Won`
+                    : `${Chip} Won`
+                  : `${Chip} Won`
+                : `${Chip} Won`
+              : `${Chip} Won`
+            : `${Chip} Won`
+          : `${Chip} Won`
+        : `${Chip} Won`
+      : `${Chip} Won`
+    : `${Chip} Won`
+  : `${Chip} Won`;
+
 type CheckDrawAllOccupied<Board extends Connect4Board> =
   Board[number][number] extends Connect4Chips ? "Draw" : never;
 
@@ -151,7 +239,9 @@ type NextState<
       | ChipVerticalAnyColumn<Board, "🔴">
       | ChipWonHorizontalAnyRow<Board, "🔴">
       | ChipVerticalAnyColumn<Board, "🟡">
-      | ChipWonHorizontalAnyRow<Board, "🟡"> extends never
+      | ChipWonHorizontalAnyRow<Board, "🟡">
+      | ChipWonDiagonalAnyRow<Board, "🔴">
+      | ChipWonDiagonalAnyRow<Board, "🟡"> extends never
     ? CheckDrawAllOccupied<Board> extends never
       ? CurrState extends "🔴"
         ? "🟡"
@@ -162,6 +252,8 @@ type NextState<
         | ChipWonHorizontalAnyRow<Board, "🔴">
         | ChipVerticalAnyColumn<Board, "🟡">
         | ChipWonHorizontalAnyRow<Board, "🟡">
+        | ChipWonDiagonalAnyRow<Board, "🔴">
+        | ChipWonDiagonalAnyRow<Board, "🟡">
   : never;
 
 type NextGame<Board, CurrState extends Connect4Chips> = {
